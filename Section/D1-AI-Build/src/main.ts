@@ -11,6 +11,7 @@ import {
   recordTrack,
   type StudioState,
 } from "./game/state.ts";
+import { currentTier } from "./game/tiers.ts";
 import { createEquipmentList } from "./ui/equipment-list.ts";
 import { el } from "./ui/elements.ts";
 import "./style.css";
@@ -36,6 +37,10 @@ recordButton.addEventListener("click", () => {
 
 const incomeReadout = el("p", "income-readout", "$0.10/sec");
 
+const tierName = el("p", "tier-name", "Bedroom Setup");
+const tierBlurb = el("p", "tier-blurb", "");
+const tierProgress = el("p", "tier-progress", "");
+
 const equipmentList = createEquipmentList((equipmentId) => {
   // Rejected purchases change nothing; accepted ones pay for the gear.
   const attempt = purchaseEquipment(state, equipmentId);
@@ -52,6 +57,9 @@ const studio = el(
   moneyReadout,
   moneyCaption,
   incomeReadout,
+  tierName,
+  tierBlurb,
+  tierProgress,
   equipmentList.root,
 );
 
@@ -61,6 +69,14 @@ function render(): void {
   moneyReadout.textContent = `$${Math.floor(state.money)}`;
   incomeReadout.textContent = `$${royaltiesPerSecond(state).toFixed(2)}/sec`;
   recordButton.ariaLabel = `Record a track ($${payoutPerTrack(state)})`;
+
+  const { tier, next } = currentTier(state.lifetimeEarnings);
+  tierName.textContent = tier.name;
+  tierBlurb.textContent = tier.blurb;
+  tierProgress.textContent = next
+    ? `Next: ${next.name} at $${next.earningsRequired.toLocaleString()}`
+    : "Top tier reached";
+
   equipmentList.update(state);
 }
 

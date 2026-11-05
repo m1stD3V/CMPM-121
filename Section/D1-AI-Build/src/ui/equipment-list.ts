@@ -2,10 +2,16 @@
  * The studio's equipment list: one row per catalog item, showing what it
  * does, how many the studio owns, and what the next unit costs.
  *
- * This component only displays state and forwards purchase requests; the
- * buying rules live in `src/game/state.ts`.
+ * Rows the studio has not unlocked yet stay hidden until its tier catches
+ * up. This component only displays state and forwards purchase requests;
+ * the buying rules live in `src/game/state.ts`.
  */
-import { EQUIPMENT_CATALOG, equipmentCost } from "../game/equipment.ts";
+import {
+  type Equipment,
+  EQUIPMENT_CATALOG,
+  equipmentCost,
+} from "../game/equipment.ts";
+import { tierIndexFor } from "../game/tiers.ts";
 import { ownedCount, type StudioState } from "../game/state.ts";
 import { el } from "./elements.ts";
 
@@ -15,60 +21,59 @@ export interface EquipmentListView {
   update: (state: StudioState) => void;
 }
 
+interface EquipmentRow {
+  element: HTMLElement;
+  ownedLabel: HTMLElement;
+  costLabel: HTMLElement;
+  buyButton: HTMLButtonElement;
+}
+
 /** Creates the equipment list and wires purchase requests to `onPurchase`. */
 export function createEquipmentList(
   onPurchase: (equipmentId: string) => void,
 ): EquipmentListView {
-  const rows = new Map<
-    string,
-    {
-      ownedLabel: HTMLElement;
-      costLabel: HTMLElement;
-      buyButton: HTMLButtonElement;
-    }
-  >();
+  const rows = new Map<string, EquipmentRow>();
+  const list = el("section", "equipment-list");
+  list.append(el("h2", "equipment-heading", "Equipment"));
 
-  const root = el("section", "equipment-list");
-  root.append(el("h2", "equipment-heading", "Equipment"));
-
-  for (const item of EQUIPMENT_CATALOG) {
+  for (const item of EQUIPMENT_CATALOG as Equipment[]) {
     const ownedLabel = el("span", "equipment-owned", "");
     const costLabel = el("span", "equipment-cost", "");
     const buyButton = el("button", "equipment-buy", "Buy");
     buyButton.addEventListener("click", () => onPurchase(item.id));
 
-    rows.set(item.id, { ownedLabel, costLabel, buyButton });
-
-    root.append(
+    const row = el(
+      "article",
+      "equipment-row",
       el(
-        "article",
-        "equipment-row",
-        el(
-          "header",
-          "equipment-header",
-          el("h3", "equipment-name", item.name, ownedLabel),
-          costLabel,
-        ),
-        el("p", "equipment-description", item.description),
-        buyButton,
+        "header",
+        "equipment-header",
+        el("h3", "equipment-name", item.name, ownedLabel),
+        costLabel,
       ),
+      el("p", "equipment-description", item.description),
+      buyButton,
     );
+
+    rows.set(item.id, { element: row, ownedLabel, costLabel, buyButton });
+    list.append(row);
   }
 
-  function update(state: StudioState): void {
-    for (const item of EQUIPMENT_CATALOG) {
-      const row = rows.get(item.id)!;
-      const count = ownedCount(state, item.id);
-      const cost = equipmentCost(item, count);
+  return {
+    root: list,
+    update(state) {
+      const tier = tierIndexFor(state.lifetimeEarnings);
+      for (const item of EQUIPMENT_CATALOG as Equipment[]) {
+        const row = rows.get(item.id)!;
+        row.element.hidden = item.tier > tier;
 
-      row.ownedLabel.textContent = count > 0 ? ` ×${count}` : "";
-      row.costLabel.textContent = `$${cost}`;
-      row.buyButton.textContent = count === 0 ? "Buy" : "Buy another";
-      // A row the studio cannot afford stays visible but disabled, showing
-      // what to save toward next.
-      row.buyButton.disabled = state.money < cost;
-    }
-  }
-
-  return { root, update };
+        const count = ownedCount(state, item.id);
+        const cost = equipmentCost(item, count);
+        row.ownedLabel.textContent = count > 0 ? ` ×${count}` : "";
+        row.costLabel.textContent = `$${cost}`;
+        row.buyButton.textContent = count > 0 ? "Buy another" : "Buy";
+        row.buyButton.disabled = state.money < cost;
+      }
+    },
+  };
 }

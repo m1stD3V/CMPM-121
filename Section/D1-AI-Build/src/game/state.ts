@@ -1,25 +1,23 @@
 /**
- * Studio Clicker's core numbers, kept free of DOM code so tests can exercise
- * the rules without a browser.
- *
- * This module owns the shape of the studio's data and the legal changes to
- * it. Income rules live in `economy.ts`; gear definitions live in
- * `equipment.ts`.
+ * The studio's data and the only legal ways it changes. Income rules live
+ * in `economy.ts`; gear definitions live in `equipment.ts`.
  */
 import { equipmentCost, findEquipment } from "./equipment.ts";
 import { payoutPerTrack, royaltiesPerSecond } from "./economy.ts";
 
 /**
- * Money the studio has on hand, ready to spend, plus how many units of each
- * piece of equipment the studio owns.
+ * Everything the studio owns, plus the royalties it has ever earned.
+ * `lifetimeEarnings` drives progression tiers; spending money does not
+ * reduce it, so levels are never lost.
  */
 export interface StudioState {
   money: number;
   ownedEquipment: Record<string, number>;
+  lifetimeEarnings: number;
 }
 
 export function initialState(): StudioState {
-  return { money: 0, ownedEquipment: {} };
+  return { money: 0, ownedEquipment: {}, lifetimeEarnings: 0 };
 }
 
 /** How many units of a given piece of equipment the studio owns. */
@@ -33,7 +31,11 @@ export function ownedCount(state: StudioState, equipmentId: string): number {
  */
 export function recordTrack(state: StudioState): StudioState {
   const payout = payoutPerTrack(state);
-  return { ...state, money: state.money + payout };
+  return {
+    ...state,
+    money: state.money + payout,
+    lifetimeEarnings: state.lifetimeEarnings + payout,
+  };
 }
 
 /**
@@ -47,7 +49,11 @@ export function applyRoyalties(
 ): StudioState {
   if (seconds <= 0) return state;
   const gain = royaltiesPerSecond(state) * seconds;
-  return { ...state, money: state.money + gain };
+  return {
+    ...state,
+    money: state.money + gain,
+    lifetimeEarnings: state.lifetimeEarnings + gain,
+  };
 }
 
 /** Why a purchase did not go through. */

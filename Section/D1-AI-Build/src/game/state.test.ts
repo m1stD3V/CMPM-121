@@ -8,7 +8,11 @@ import {
 } from "./state.ts";
 
 Deno.test("a fresh studio starts with no money and no gear", () => {
-  assertEquals(initialState(), { money: 0, ownedEquipment: {} });
+  assertEquals(initialState(), {
+    money: 0,
+    ownedEquipment: {},
+    lifetimeEarnings: 0,
+  });
 });
 
 Deno.test("recording a track pays out its royalty", () => {
@@ -28,7 +32,7 @@ Deno.test("repeated recording accumulates payouts", () => {
 Deno.test("recording does not mutate the state it was given", () => {
   const state = initialState();
   recordTrack(state);
-  assertEquals(state, { money: 0, ownedEquipment: {} });
+  assertEquals(state, { money: 0, ownedEquipment: {}, lifetimeEarnings: 0 });
 });
 
 Deno.test("unowned equipment reports a count of zero", () => {
@@ -57,7 +61,7 @@ Deno.test("elapsed time that is not positive changes nothing", () => {
 Deno.test("applying royalties does not mutate the state it was given", () => {
   const state = initialState();
   applyRoyalties(state, 10);
-  assertEquals(state, { money: 0, ownedEquipment: {} });
+  assertEquals(state, { money: 0, ownedEquipment: {}, lifetimeEarnings: 0 });
 });
 
 Deno.test("buying equipment deducts its price and records ownership", () => {
@@ -77,7 +81,7 @@ Deno.test("a purchase the studio cannot afford is rejected untouched", () => {
     ok: false,
     reason: "insufficient-funds",
   });
-  assertEquals(broke, { money: 14, ownedEquipment: {} });
+  assertEquals(broke, { money: 14, ownedEquipment: {}, lifetimeEarnings: 0 });
 });
 
 Deno.test("a purchase with exactly the right price is allowed", () => {
@@ -96,7 +100,7 @@ Deno.test("unknown equipment ids are rejected", () => {
 Deno.test("purchasing does not mutate the state it was given", () => {
   const state = { ...initialState(), money: 1000 };
   purchaseEquipment(state, "usb-mic");
-  assertEquals(state, { money: 1000, ownedEquipment: {} });
+  assertEquals(state, { money: 1000, ownedEquipment: {}, lifetimeEarnings: 0 });
 });
 
 Deno.test("buying more units follows the rising cost curve", () => {
@@ -110,4 +114,19 @@ Deno.test("buying more units follows the rising cost curve", () => {
     assertEquals(ownedCount(state, "usb-mic"), i + 1);
   }
   assertEquals(state.money, 10_000 - moneySpent);
+});
+
+Deno.test("every dollar earned counts toward lifetime earnings", () => {
+  let state = recordTrack(initialState());
+  state = applyRoyalties(state, 100);
+  assertEquals(state.lifetimeEarnings, state.money);
+});
+
+Deno.test("spending money does not reduce lifetime earnings", () => {
+  const state = { ...initialState(), money: 100, lifetimeEarnings: 100 };
+  const attempt = purchaseEquipment(state, "usb-mic");
+  assertEquals(attempt.ok, true);
+  if (!attempt.ok) return;
+  assertEquals(attempt.state.money, 85);
+  assertEquals(attempt.state.lifetimeEarnings, 100);
 });
