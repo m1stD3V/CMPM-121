@@ -3,7 +3,10 @@ import {
   EQUIPMENT_CATALOG,
   equipmentCost,
   findEquipment,
+  visibleEquipment,
 } from "./equipment.ts";
+import { STUDIO_TIERS, tierIndexFor } from "./tiers.ts";
+import { initialState } from "./state.ts";
 
 Deno.test("every catalog item has a unique id", () => {
   const ids = EQUIPMENT_CATALOG.map((item) => item.id);
@@ -48,5 +51,38 @@ Deno.test("costs keep climbing even after many purchases", () => {
     const next = equipmentCost(mic, count);
     assertEquals(next > cost, true, `unit ${count}`);
     cost = next;
+  }
+});
+
+Deno.test("a studio can only see gear its tier has unlocked", () => {
+  const fresh = initialState();
+  const atStart = visibleEquipment(fresh);
+  for (const item of EQUIPMENT_CATALOG) {
+    const unlocked = item.tier <= tierIndexFor(fresh.lifetimeEarnings);
+    assertEquals(atStart.some((visible) => visible.id === item.id), unlocked);
+  }
+});
+
+Deno.test("a top-tier studio sees the entire catalog", () => {
+  const finalTier = STUDIO_TIERS[STUDIO_TIERS.length - 1];
+  const reached = {
+    ...initialState(),
+    lifetimeEarnings: finalTier.earningsRequired,
+  };
+  assertEquals(visibleEquipment(reached).length, EQUIPMENT_CATALOG.length);
+});
+
+Deno.test("unlocking a new tier reveals only its own gear", () => {
+  const fresh = initialState();
+  const homeStudio = {
+    ...fresh,
+    lifetimeEarnings: STUDIO_TIERS[1].earningsRequired,
+  };
+  const freshIds = new Set(visibleEquipment(fresh).map((item) => item.id));
+  const newlyVisible = visibleEquipment(homeStudio).filter(
+    (item) => !freshIds.has(item.id),
+  );
+  for (const item of newlyVisible) {
+    assertEquals(item.tier, 1, item.id);
   }
 });
