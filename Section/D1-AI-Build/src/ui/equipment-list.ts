@@ -5,12 +5,8 @@
  * This component only displays state and forwards purchase requests; the
  * buying rules live in `src/game/state.ts`.
  */
-import {
-  EQUIPMENT_CATALOG,
-  equipmentCost,
-  ownedCount,
-  type StudioState,
-} from "../game/state.ts";
+import { EQUIPMENT_CATALOG, equipmentCost } from "../game/equipment.ts";
+import { ownedCount, type StudioState } from "../game/state.ts";
 import { el } from "./elements.ts";
 
 export interface EquipmentListView {

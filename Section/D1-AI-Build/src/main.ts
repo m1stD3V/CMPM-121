@@ -3,13 +3,12 @@
  * studio equipment, and grow a home setup into a record label.
  */
 import vinylUrl from "./assets/vinyl.svg?no-inline";
+import { payoutPerTrack, royaltiesPerSecond } from "./game/economy.ts";
 import {
   applyRoyalties,
   initialState,
-  payoutPerTrack,
   purchaseEquipment,
   recordTrack,
-  royaltiesPerSecond,
   type StudioState,
 } from "./game/state.ts";
 import { createEquipmentList } from "./ui/equipment-list.ts";
