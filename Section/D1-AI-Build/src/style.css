@@ -75,3 +75,85 @@ body {
   color: var(--muted);
   margin: 0;
 }
+
+.equipment-list {
+  margin-top: 2rem;
+  text-align: left;
+  display: grid;
+  gap: 0.5rem;
+  max-width: 420px;
+  width: 100%;
+}
+
+.equipment-heading {
+  margin: 0 0 0.25rem;
+  color: var(--muted);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.equipment-row {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.75rem 1rem;
+  background: rgb(255 255 255 / 0.04);
+  border: 1px solid rgb(255 255 255 / 0.08);
+  border-radius: 0.75rem;
+}
+
+.equipment-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.equipment-name {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.equipment-owned {
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.equipment-cost {
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+
+.equipment-description {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.equipment-buy {
+  justify-self: start;
+  padding: 0.3rem 1rem;
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--accent);
+  font: inherit;
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.equipment-buy:hover:enabled {
+  background: var(--accent);
+  color: var(--bg);
+}
+
+.equipment-buy:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.income-readout {
+  color: var(--muted);
+  margin: 0.25rem 0 0;
+  font-variant-numeric: tabular-nums;
+}

@@ -6,10 +6,13 @@ import vinylUrl from "./assets/vinyl.svg?no-inline";
 import {
   applyRoyalties,
   initialState,
+  payoutPerTrack,
+  purchaseEquipment,
   recordTrack,
   royaltiesPerSecond,
   type StudioState,
 } from "./game/state.ts";
+import { createEquipmentList } from "./ui/equipment-list.ts";
 import { el } from "./ui/elements.ts";
 import "./style.css";
 
@@ -34,6 +37,13 @@ recordButton.addEventListener("click", () => {
 
 const incomeReadout = el("p", "income-readout", "$0.10/sec");
 
+const equipmentList = createEquipmentList((equipmentId) => {
+  // Rejected purchases change nothing; accepted ones pay for the gear.
+  const attempt = purchaseEquipment(state, equipmentId);
+  if (attempt.ok) state = attempt.state;
+  render();
+});
+
 const studio = el(
   "section",
   "studio",
@@ -43,6 +53,7 @@ const studio = el(
   moneyReadout,
   moneyCaption,
   incomeReadout,
+  equipmentList.root,
 );
 
 app.append(studio);
@@ -50,6 +61,8 @@ app.append(studio);
 function render(): void {
   moneyReadout.textContent = `$${Math.floor(state.money)}`;
   incomeReadout.textContent = `$${royaltiesPerSecond(state).toFixed(2)}/sec`;
+  recordButton.ariaLabel = `Record a track ($${payoutPerTrack(state)})`;
+  equipmentList.update(state);
 }
 
 /**
