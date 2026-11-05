@@ -1,0 +1,77 @@
+/* Studio Clicker — a dark studio vibe with one big vinyl button. */
+
+:root {
+  color-scheme: dark;
+  --bg: #12131a;
+  --ink: #f2efe6;
+  --muted: #9aa0b4;
+  --accent: #e34c74;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(circle at 50% 20%, #1e2030, var(--bg) 70%);
+  color: var(--ink);
+  font-family: system-ui, sans-serif;
+}
+
+.studio {
+  text-align: center;
+  padding: 2rem;
+}
+
+.studio-title {
+  font-size: 2rem;
+  margin: 0;
+  letter-spacing: 0.02em;
+}
+
+.studio-tagline {
+  color: var(--muted);
+  margin: 0.25rem 0 2rem;
+}
+
+.vinyl-button {
+  display: block;
+  margin: 0 auto;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
+  transition: transform 90ms ease;
+}
+
+.vinyl-button:active {
+  transform: scale(0.93) rotate(-8deg);
+}
+
+.vinyl-button:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 4px;
+}
+
+.vinyl-art {
+  display: block;
+  width: min(260px, 60vw);
+  height: auto;
+  filter: drop-shadow(0 12px 24px rgb(0 0 0 / 0.5));
+}
+
+.money-readout {
+  font-size: 2.4rem;
+  margin: 2rem 0 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.money-caption {
+  color: var(--muted);
+  margin: 0;
+}

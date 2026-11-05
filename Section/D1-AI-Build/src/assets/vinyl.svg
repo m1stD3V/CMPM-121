@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img"
+  aria-label="A vinyl record">
+  <circle cx="100" cy="100" r="97" fill="#141620" />
+  <g fill="none" stroke="#232738" stroke-width="1.5">
+    <circle cx="100" cy="100" r="88" />
+    <circle cx="100" cy="100" r="81" />
+    <circle cx="100" cy="100" r="74" />
+    <circle cx="100" cy="100" r="67" />
+    <circle cx="100" cy="100" r="60" />
+    <circle cx="100" cy="100" r="53" />
+    <circle cx="100" cy="100" r="46" />
+    <circle cx="100" cy="100" r="39" />
+  </g>
+  <path d="M 21 71 A 84 84 0 0 1 71 21" fill="none" stroke="#3d4260"
+    stroke-width="4" stroke-linecap="round" opacity="0.5" />
+  <path d="M 179 129 A 84 84 0 0 1 129 179" fill="none" stroke="#3d4260"
+    stroke-width="4" stroke-linecap="round" opacity="0.5" />
+  <circle cx="100" cy="100" r="32" fill="#e34c74" />
+  <circle cx="100" cy="100" r="32" fill="none" stroke="#b23558"
+    stroke-width="2" />
+  <circle cx="100" cy="100" r="8" fill="#0d0e15" />
+</svg>
