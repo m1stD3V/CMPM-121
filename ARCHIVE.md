@@ -21,6 +21,10 @@ bundle with the original hashes.
 `E3` is archived from its `C` branch, which was one commit ahead of `main` in the
 working copy; the other branches (`A`, `B`, `main`) are kept as well.
 
+`E4` was committed in a state that `deno fmt --check` rejects (tabs and missing
+semicolons in `src/prefab.ts`). The source is archived exactly as it was; its
+build skips the style check so the published demo still reflects that commit.
+
 ## Two copies of the history
 
 **Browsable.** `refs/heads/projects/<label>/<branch>` holds each project's commits

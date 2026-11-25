@@ -1,12 +1,13 @@
 # CMPM 121 — project archive
 
-Every project from the quarter, in one repository, with its full history — and one
-site that links to all of them.
+Every project from the quarter, in one repository, with its full history — and
+one site that links to all of them.
 
-This is not a monorepo of submodules or nested repositories: each project's commits
-were imported into this repository's object store. `git log -- Demos/D1` gives the
-real history of that project, including the commits made before this archive
-existed. `ARCHIVE.md` records where each project came from and how to restore it.
+This is not a monorepo of submodules or nested repositories: each project's
+commits were imported into this repository's object store. `git log -- Demos/D1`
+gives the real history of that project, including the commits made before this
+archive existed. `ARCHIVE.md` records where each project came from and how to
+restore it.
 
 ## Layout
 
@@ -26,12 +27,18 @@ them; this repository owns everything under it.
 ## Commands
 
 ```sh
-deno task serve     # build the hub from local dist/ folders, then serve dist/ on :8000
-deno task site      # build the hub into dist/ (contents only)
+deno task build     # build every project with the right base path, then the hub
+deno task serve     # preview at http://localhost:8000/CMPM-121/
+deno task site      # assemble dist/ from existing project builds (what CI does)
 deno task sync      # refresh history from the GitHub remotes
 deno task sync --local   # refresh from the project folders on disk
 deno task check     # formatting, lint, and type-check for the archive's own code
 ```
+
+`deno task build` skips the Godot project unless you pass `--godot` (it
+downloads Godot into `Demos/D4/.tools/` first). A stale `dist/` built for a
+different base path is refused rather than published, so `deno task site` alone
+can only use builds that will actually resolve.
 
 Building one project by hand, exactly as CI does:
 
@@ -40,16 +47,16 @@ cd Demos/D1
 REPO_NAME=CMPM-121/Demos/D1 deno task ci
 ```
 
-`REPO_NAME` is what the project's `vite.config.js` turns into the `base` path, so
-the same source builds correctly whether it is served at `/Demos/D1/` from this
-site or at the root of its own repository.
+`REPO_NAME` is what the project's `vite.config.js` turns into the `base` path,
+so the same source builds correctly whether it is served at `/Demos/D1/` from
+this site or at the root of its own repository.
 
 ## Deployment
 
-`pages.yml` reads `projects.json`, builds every project in its own matrix job, then
-assembles the hub and deploys one Pages artifact. A project that fails to build
-does not block the rest: its card shows **Build unavailable** and the job is
-annotated. The hub itself is plain HTML/CSS/JS — no framework, no client-side
+`pages.yml` reads `projects.json`, builds every project in its own matrix job,
+then assembles the hub and deploys one Pages artifact. A project that fails to
+build does not block the rest: its card shows **Build unavailable** and the job
+is annotated. The hub itself is plain HTML/CSS/JS — no framework, no client-side
 routing.
 
 Pages is served from the repository name: `https://m1std3v.github.io/CMPM-121/`,
@@ -65,6 +72,11 @@ with each project at `/CMPM-121/<folder>/`.
 
 ## Provenance and retirement
 
-`ARCHIVE.md` lists the original repository for every folder, and `archives/*.bundle`
-holds each one exactly as it was published. When the individual repositories are
-retired, delete `.github/workflows/sync.yml`; the archive stops needing them.
+`ARCHIVE.md` lists the original repository for every folder, and
+`archives/*.bundle` holds each one exactly as it was published. When the
+individual repositories are retired, delete `.github/workflows/sync.yml`; the
+archive stops needing them.
+
+The scheduled sync fetches each repository anonymously, so it works while they
+are public (as GitHub Pages requires on a free plan). If one is private, run
+`deno task sync --local` from a machine that already has it checked out.

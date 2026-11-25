@@ -100,7 +100,9 @@
       "repo": "E4-Excersize",
       "legacySite": "https://m1std3v.github.io/E4-Excersize/",
       "head": "main",
-      "build": "vite"
+      "build": "vite",
+      "buildCommand": "deno task check && deno task build",
+      "buildNote": "The archived snapshot is not deno-fmt clean, so the style check is skipped; the app itself type-checks and builds."
     },
     {
       "path": "Exercises/E5",

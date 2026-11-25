@@ -38,6 +38,7 @@ const staging = flags.get("staging");
 const manifest: Manifest = JSON.parse(
   await Deno.readTextFile(`${ROOT}/projects.json`),
 );
+const base = manifest.site.repo.replace(/\/$/, "").split("/").pop()!;
 
 /** Runs git at the archive root; returns "" when git is unavailable. */
 function git(args: string[]): string {
@@ -237,8 +238,24 @@ for (const project of manifest.projects) {
   } else {
     try {
       await Deno.stat(`${ROOT}/${project.path}/dist`);
-      await copyTree(`${ROOT}/${project.path}/dist`, outDir);
-      ok = true;
+      // A build made for a different base path would 404 once published here.
+      let stale = false;
+      if (project.build === "vite") {
+        const html = await Deno.readTextFile(
+          `${ROOT}/${project.path}/dist/index.html`,
+        );
+        if (!html.includes(`/${base}/${project.path}/`)) {
+          console.log(
+            `  ${project.path}: dist/ was built for a different base path; ` +
+              `run \`deno task build --only=${project.label}\`.`,
+          );
+          stale = true;
+        }
+      }
+      if (!stale) {
+        await copyTree(`${ROOT}/${project.path}/dist`, outDir);
+        ok = true;
+      }
     } catch {
       ok = false;
     }
