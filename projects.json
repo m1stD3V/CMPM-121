@@ -1,0 +1,142 @@
+{
+  "site": {
+    "title": "CMPM 121 — Project Archive",
+    "course": "CMPM 121 · UC Santa Cruz",
+    "lede": "Eleven projects from one quarter of game development, collected into a single repository with their complete history. Every build below runs from this site.",
+    "repo": "https://github.com/m1stD3V/CMPM-121"
+  },
+  "projects": [
+    {
+      "path": "Demos/D1",
+      "label": "D1",
+      "group": "Demos",
+      "title": "Studio Clicker",
+      "description": "A music-studio clicker: lay down takes, earn royalties, and reinvest into bigger equipment.",
+      "stack": ["TypeScript", "Vite"],
+      "repo": "d1-project",
+      "legacySite": "https://m1std3v.github.io/d1-project/",
+      "head": "main",
+      "build": "vite"
+    },
+    {
+      "path": "Demos/D2",
+      "label": "D2",
+      "group": "Demos",
+      "title": "Mapcrafter",
+      "description": "A dungeon-map editor with snap-to-grid drawing, custom stamps, JSON save/load, and PNG export.",
+      "stack": ["TypeScript", "Canvas"],
+      "repo": "D2-Project",
+      "legacySite": "https://m1std3v.github.io/D2-Project/",
+      "head": "main",
+      "build": "vite"
+    },
+    {
+      "path": "Demos/D3",
+      "label": "D3",
+      "group": "Demos",
+      "title": "SpaceCrafter",
+      "description": "Stranded on a hostile planet: gather materials, craft components, and repair your ship before time runs out.",
+      "stack": ["Phaser", "TypeScript"],
+      "repo": "d3Project",
+      "legacySite": "https://m1std3v.github.io/d3Project/",
+      "head": "main",
+      "build": "vite"
+    },
+    {
+      "path": "Demos/D4",
+      "label": "D4",
+      "group": "Demos",
+      "title": "Voxel Dragon",
+      "description": "A voxel dragon on a grid with snake rules, built in Godot with art generated in Blender.",
+      "stack": ["Godot", "GDScript"],
+      "repo": "D4",
+      "legacySite": "https://m1std3v.github.io/D4/",
+      "head": "main",
+      "build": "godot"
+    },
+    {
+      "path": "Exercises/E1",
+      "label": "E1",
+      "group": "Exercises",
+      "title": "Three browser sketches",
+      "description": "Lighting controls, an auto-targeting display, and a puzzle renderer — three independent pages.",
+      "stack": ["HTML", "Canvas"],
+      "repo": "E01-ThreeRefac",
+      "legacySite": null,
+      "head": "main",
+      "build": "static"
+    },
+    {
+      "path": "Exercises/E2",
+      "label": "E2",
+      "group": "Exercises",
+      "title": "Workshop stations",
+      "description": "Allocation, rover, and counter stations sharing one stylesheet and a single entry page.",
+      "stack": ["TypeScript", "Vite"],
+      "repo": "E2",
+      "legacySite": "https://m1std3v.github.io/E2/",
+      "head": "main",
+      "build": "vite"
+    },
+    {
+      "path": "Exercises/E3",
+      "label": "E3",
+      "group": "Exercises",
+      "title": "A face with options",
+      "description": "A script-built SVG face with options and a Spin button, saved as named variants.",
+      "stack": ["TypeScript", "Vite"],
+      "repo": "E3-Excersize",
+      "legacySite": "https://m1std3v.github.io/E3-Excersize/",
+      "head": "C",
+      "build": "vite"
+    },
+    {
+      "path": "Exercises/E4",
+      "label": "E4",
+      "group": "Exercises",
+      "title": "Neon Warden",
+      "description": "A vertical shooter with a Phaser playfield, HTML score panels, a route map, and an attract mode.",
+      "stack": ["Phaser", "TypeScript"],
+      "repo": "E4-Excersize",
+      "legacySite": "https://m1std3v.github.io/E4-Excersize/",
+      "head": "main",
+      "build": "vite"
+    },
+    {
+      "path": "Exercises/E5",
+      "label": "E5",
+      "group": "Exercises",
+      "title": "Crate Expectations",
+      "description": "A Sokoban-style puzzle game: rules in plain TypeScript, the screen drawn with React.",
+      "stack": ["React", "TypeScript"],
+      "repo": "E5",
+      "legacySite": "https://m1std3v.github.io/E5/",
+      "head": "main",
+      "build": "vite"
+    },
+    {
+      "path": "Section/S1",
+      "label": "S1",
+      "group": "Section",
+      "title": "Counter starter",
+      "description": "Section activity: a counter that increments on screen, with the starter's exception removed.",
+      "stack": ["TypeScript", "Vite"],
+      "repo": "Section_01",
+      "legacySite": "https://m1std3v.github.io/Section_01/",
+      "head": "main",
+      "build": "vite"
+    },
+    {
+      "path": "Section/D1-AI-Build",
+      "label": "D1-AI",
+      "group": "Section",
+      "title": "Studio Clicker (AI build)",
+      "description": "An incremental music-career game built with an AI pair, from a bedroom setup to a full record label.",
+      "stack": ["TypeScript", "Vite"],
+      "repo": "D1-AI-Build",
+      "legacySite": "https://m1std3v.github.io/D1-AI-Build/",
+      "head": "main",
+      "build": "vite"
+    }
+  ]
+}

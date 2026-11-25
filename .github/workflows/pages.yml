@@ -1,0 +1,143 @@
+name: Deploy archive to GitHub Pages
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  # Read projects.json once, so the build matrix always matches the manifest.
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.manifest.outputs.matrix }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Read the project manifest
+        id: manifest
+        run: |
+          echo "matrix=$(jq -c '[.projects[] | {path, label, build}]' projects.json)" >> "$GITHUB_OUTPUT"
+
+  # One job per project: a broken build fails its own card, not the whole site.
+  build:
+    needs: prepare
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.prepare.outputs.matrix) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v2.0.5
+        with:
+          deno-version: v2.9.8
+
+      - name: Setup uv (Godot linting and Python stubs)
+        if: matrix.build == 'godot'
+        uses: astral-sh/setup-uv@v10.3.3
+        with:
+          enable-cache: false
+
+      - name: Cache Godot in the project's .tools/
+        if: matrix.build == 'godot'
+        uses: actions/cache@v6
+        with:
+          path: ${{ matrix.path }}/.tools
+          key: godot-${{ runner.os }}-${{ hashFiles(format('{0}/scripts/godot.ts', matrix.path)) }}
+
+      - name: Download pinned Godot
+        if: matrix.build == 'godot'
+        working-directory: ${{ matrix.path }}
+        run: deno task setup
+
+      - name: Run CI checks and build
+        id: build
+        if: matrix.build != 'static'
+        continue-on-error: true
+        working-directory: ${{ matrix.path }}
+        env:
+          # The project site lives at /<repo>/<path>/, so the project's own
+          # vite.config.js picks up the right base without any changes.
+          REPO_NAME: ${{ github.event.repository.name }}/${{ matrix.path }}
+        run: deno task ci
+
+      - name: Note a failed build
+        if: steps.build.outcome == 'failure'
+        run: |
+          echo "::warning title=${{ matrix.path }}::Build failed; the card will show it as unavailable."
+          echo "- ⚠️ \`${{ matrix.path }}\` did not build. See the log for this job." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Stage the build
+        if: matrix.build == 'static' || steps.build.outcome == 'success'
+        run: |
+          mkdir -p "out/${{ matrix.path }}"
+          if [ "${{ matrix.build }}" = "static" ]; then
+            cp "${{ matrix.path }}"/*.html "out/${{ matrix.path }}/"
+          else
+            cp -R "${{ matrix.path }}/dist/." "out/${{ matrix.path }}/"
+          fi
+
+      - name: Upload this project's build
+        if: matrix.build == 'static' || steps.build.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: project-${{ matrix.label }}
+          path: out/
+          if-no-files-found: error
+          retention-days: 7
+
+  # Collect the artifacts, build the hub page, and hand one tree to Pages.
+  assemble:
+    needs: build
+    if: always() && needs.build.result != 'cancelled'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v2.0.5
+        with:
+          deno-version: v2.9.8
+
+      - name: Download project builds
+        uses: actions/download-artifact@v4
+        with:
+          pattern: project-*
+          path: staging
+          merge-multiple: true
+
+      - name: Build the hub
+        run: deno task site --staging=staging
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v6
+
+      - name: Upload production build
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: ./dist
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: assemble
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5

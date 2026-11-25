@@ -1,0 +1,14 @@
+{
+  "tasks": {
+    "site": "deno run -A scripts/build-site.ts",
+    "serve": "deno run -A jsr:@std/http@1/file-server dist",
+    "sync": "deno run -A scripts/sync-projects.ts",
+    "check": "deno fmt --check scripts site/main.js site/styles.css projects.json deno.json && deno lint scripts && deno check scripts"
+  },
+  "fmt": {
+    "exclude": ["Demos", "Exercises", "Section", "dist", "staging"]
+  },
+  "lint": {
+    "exclude": ["Demos", "Exercises", "Section", "dist", "staging"]
+  }
+}

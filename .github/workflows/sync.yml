@@ -1,0 +1,41 @@
+name: Sync project sources
+
+# Refreshes the archive from the individual project repositories.
+#
+# This is a bridge, not a permanent part of the archive: once the original
+# repositories are retired, delete this workflow. `deno task sync` still works
+# against any remote you point projects.json at.
+
+on:
+  schedule:
+    - cron: "17 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: "sync"
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v2.0.5
+        with:
+          deno-version: v2.9.8
+
+      - name: Configure the commit identity
+        run: |
+          git config user.name "archive sync"
+          git config user.email "archive-sync@users.noreply.github.com"
+
+      - name: Import new commits and push
+        run: deno task sync --push

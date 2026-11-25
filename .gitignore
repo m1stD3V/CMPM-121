@@ -1,0 +1,15 @@
+# Build output and tool caches from the projects this archive collects.
+# The archive tracks source; every demo is rebuilt from it.
+**/node_modules/
+**/dist/
+**/.vite/
+**/.tools/
+**/.godot/
+**/.venv/
+**/__pycache__/
+**/*.pyc
+
+# Hub build output and scratch space.
+/dist/
+/staging/
+.DS_Store
