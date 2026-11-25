@@ -430,3 +430,7 @@ h1 {
     align-items: flex-start;
   }
 }
+
+[hidden] {
+  display: none !important;
+}
