@@ -70,6 +70,13 @@ with each project at `/CMPM-121/<folder>/`.
 3. `deno task sync --local` imports its history and bundles the origin.
 4. Commit.
 
+## One caution
+
+Each project still carries its old `deno task setup`, which sets the
+repository's `core.hooksPath` to that project's `.githooks`. Don't run it here:
+it would install one project's pre-commit check for the whole archive. Use
+`deno task check`.
+
 ## Provenance and retirement
 
 `ARCHIVE.md` lists the original repository for every folder, and
