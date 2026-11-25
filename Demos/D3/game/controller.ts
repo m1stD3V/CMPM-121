@@ -23,6 +23,8 @@ export class Controller {
   // has seen, and reading it would show the future.
   onSettled: () => void = () => {};
 
+  readonly recorded: Command[] = [];
+
   constructor(state: GameState, presenter: Presenter) {
     this.state = state;
     this.presenter = presenter;
@@ -34,6 +36,12 @@ export class Controller {
     addEventListener("keydown", (event) => this.keyDown(event));
     addEventListener("keyup", (event) => this.keyUp(event));
     addEventListener("blur", () => (this.held = []));
+  }
+
+  // Allow page elements like recipe buttons to enqueue commands through the mediator
+  dispatch(command: Command) {
+    this.pressed = command;
+    this.next();
   }
 
   private commandFor(event: KeyboardEvent): Command | null {
@@ -74,6 +82,8 @@ export class Controller {
       (held ? { type: "move", direction: held } : null);
     this.pressed = null;
     if (!command) return;
+
+    this.recorded.push(command);
 
     // Playing nothing would report idle at once, and a held key would land back
     // here until the stack overflowed. No events means there is nothing to wait for.

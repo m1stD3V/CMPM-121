@@ -8,7 +8,10 @@ export type ItemId =
   | "scrap"
   | "fuel"
   | "hullPlate"
-  | "wrench";
+  | "wrench"
+  | "ladder"
+  | "darkMatter"
+  | "finalShip";
 
 export type Inventory = Partial<Record<ItemId, number>>;
 
@@ -23,6 +26,9 @@ export const ITEM_LABEL: Record<ItemId, string> = {
   fuel: "Fuel Cell",
   hullPlate: "Hull Plate",
   wrench: "Wrench",
+  ladder: "Ladder",
+  darkMatter: "Dark Matter",
+  finalShip: "Final Ship",
 };
 
 export const SPAWN: Record<TerrainName, { chance: number; items: ItemId[] }> = {
@@ -30,7 +36,7 @@ export const SPAWN: Record<TerrainName, { chance: number; items: ItemId[] }> = {
   impact: { chance: 0.12, items: ["iron", "iron", "platinum"] },
   settlement: { chance: 0.07, items: ["water", "scrap"] },
   crash: { chance: 0, items: [] },
-  chasm: { chance: 0, items: [] },
+  chasm: { chance: 0.05, items: ["darkMatter"] },
 };
 
 export function cellKey(x: number, y: number): string {
@@ -66,7 +72,7 @@ export const RECIPES: Recipe[] = [
     id: "fuel",
     label: "Fuel Cell",
     makes: "fuel",
-    needs: { uranium: 3, water: 1 },
+    needs: { uranium: 3, water: 1, darkMatter: 1 },
     at: "crash",
     tool: "wrench",
   },
@@ -75,6 +81,22 @@ export const RECIPES: Recipe[] = [
     label: "Hull Plate",
     makes: "hullPlate",
     needs: { iron: 4, platinum: 1, scrap: 2 },
+    at: "crash",
+    tool: "wrench",
+  },
+  {
+    id: "ladder",
+    label: "Ladder",
+    makes: "ladder",
+    needs: { scrap: 3 },
+    at: "crash",
+    tool: "wrench",
+  },
+  {
+    id: "finalShip",
+    label: "Final Ship",
+    makes: "finalShip",
+    needs: { fuel: 1, hullPlate: 2 },
     at: "crash",
     tool: "wrench",
   },
