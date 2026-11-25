@@ -2,9 +2,13 @@ name: Sync project sources
 
 # Refreshes the archive from the individual project repositories.
 #
+# Those repositories are private, so this needs a token: create a fine-grained
+# personal access token with read-only "Contents" access to them, and save it as
+# the repository secret SYNC_TOKEN. Without the secret the job skips quietly —
+# `deno task sync --local` on a machine that has the folders still works.
+#
 # This is a bridge, not a permanent part of the archive: once the original
-# repositories are retired, delete this workflow. `deno task sync` still works
-# against any remote you point projects.json at.
+# repositories are retired, delete this workflow.
 
 on:
   schedule:
@@ -32,10 +36,24 @@ jobs:
         with:
           deno-version: v2.9.8
 
+      - name: Check for SYNC_TOKEN
+        id: token
+        env:
+          SYNC_TOKEN: ${{ secrets.SYNC_TOKEN }}
+        run: |
+          if [ -z "$SYNC_TOKEN" ]; then
+            echo "::notice::SYNC_TOKEN is not set; skipping the remote sync. Add the secret, or run deno task sync --local locally."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Configure the commit identity
+        if: steps.token.outputs.skip != 'true'
         run: |
           git config user.name "archive sync"
           git config user.email "archive-sync@users.noreply.github.com"
 
       - name: Import new commits and push
+        if: steps.token.outputs.skip != 'true'
+        env:
+          SYNC_TOKEN: ${{ secrets.SYNC_TOKEN }}
         run: deno task sync --push

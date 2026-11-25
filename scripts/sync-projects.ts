@@ -32,6 +32,8 @@ type Manifest = {
 
 const ROOT = new URL("..", import.meta.url).pathname.replace(/\/$/, "");
 const OWNER = "m1stD3V";
+// Only needed when the source repositories are private; public ones need nothing.
+const TOKEN = Deno.env.get("SYNC_TOKEN") ?? "";
 const manifest: Manifest = JSON.parse(
   await Deno.readTextFile(`${ROOT}/projects.json`),
 );
@@ -66,7 +68,10 @@ function git(
   }).outputSync();
   if (!result.success) {
     const err = new TextDecoder().decode(result.stderr).trim();
-    throw new Error(`git ${args.join(" ")}\n${err}`);
+    const shown = TOKEN
+      ? `${args.join(" ")}\n${err}`.replaceAll(TOKEN, "***")
+      : `${args.join(" ")}\n${err}`;
+    throw new Error(`git ${shown}`);
   }
   return new TextDecoder().decode(result.stdout).trim();
 }
@@ -98,6 +103,8 @@ if (selected.length === 0) {
 for (const project of selected) {
   const source = local
     ? `${sourceRoot}/${project.path}`
+    : TOKEN
+    ? `https://x-access-token:${TOKEN}@github.com/${OWNER}/${project.repo}.git`
     : `https://github.com/${OWNER}/${project.repo}.git`;
   console.log(
     `• ${project.path.padEnd(22)} ← ${
