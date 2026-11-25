@@ -46,6 +46,8 @@ for (const arg of Deno.args) {
 }
 
 const local = flags.has("local");
+// Where the working copies live, when --local is used from somewhere else.
+const sourceRoot = values.get("source-root") ?? ROOT;
 const push = flags.has("push");
 const neverMerge = flags.has("no-merge") || values.get("merge") === "false";
 const only = values.get("only");
@@ -95,7 +97,7 @@ if (selected.length === 0) {
 
 for (const project of selected) {
   const source = local
-    ? `${ROOT}/${project.path}`
+    ? `${sourceRoot}/${project.path}`
     : `https://github.com/${OWNER}/${project.repo}.git`;
   console.log(
     `• ${project.path.padEnd(22)} ← ${
@@ -104,15 +106,64 @@ for (const project of selected) {
   );
 
   // Exact copy of the repository: original hashes, original branch names.
+  // A working copy keeps some of its branches only as remote-tracking refs, so
+  // those are promoted to real branches before the bundle is written.
   const mirror = `${TMP}/${project.label}-mirror.git`;
   git(["clone", "--quiet", "--mirror", source, mirror]);
+  const tracked = git(
+    [
+      "for-each-ref",
+      "--format=%(refname)\t%(objectname)",
+      "refs/remotes/origin/",
+    ],
+    mirror,
+  )
+    .split("\n")
+    .filter(Boolean)
+    .map((line) => line.split("\t"))
+    .filter(([ref]) => ref !== "refs/remotes/origin/HEAD");
+  for (const [ref, sha] of tracked) {
+    git([
+      "update-ref",
+      `refs/heads/${ref.replace("refs/remotes/origin/", "")}`,
+      sha,
+    ], mirror);
+  }
+  for (
+    const ref of git(
+      ["for-each-ref", "--format=%(refname)", "refs/remotes/"],
+      mirror,
+    )
+      .split("\n")
+      .filter(Boolean)
+  ) {
+    git(["update-ref", "-d", ref], mirror);
+  }
+
   const bundle = `${ARCHIVES}/${project.label}.bundle`;
   git(["bundle", "create", bundle, "--all"], mirror);
   git(["bundle", "verify", bundle], mirror);
 
   // Browsable copy: the same commits, re-rooted at the project's folder.
+  // Cloning the mirror means every branch is available; a clone only checks out
+  // one of them, so the rest are materialised as local branches here.
   const work = `${TMP}/${project.label}-work`;
-  git(["clone", "--quiet", "--no-hardlinks", source, work]);
+  git(["clone", "--quiet", "--no-hardlinks", mirror, work]);
+  const current = git(["symbolic-ref", "--short", "HEAD"], work);
+  const heads = git(
+    ["for-each-ref", "--format=%(refname)", "refs/remotes/origin/"],
+    work,
+  )
+    .split("\n")
+    .filter(Boolean)
+    .filter((ref) => ref !== "refs/remotes/origin/HEAD")
+    .map((ref) => ref.replace("refs/remotes/origin/", ""));
+  for (const name of heads) {
+    if (name !== current) {
+      git(["branch", "--quiet", name, `origin/${name}`], work);
+    }
+  }
+
   git(
     [
       "filter-branch",
@@ -131,6 +182,7 @@ for (const project of selected) {
       "push",
       "--quiet",
       "--force",
+      "--prune",
       ROOT,
       `refs/heads/*:refs/heads/projects/${project.label}/*`,
     ],
@@ -219,6 +271,7 @@ if (push) {
     "push",
     "--quiet",
     "--force",
+    "--prune",
     "origin",
     "refs/heads/projects/*:refs/heads/projects/*",
   ]);
