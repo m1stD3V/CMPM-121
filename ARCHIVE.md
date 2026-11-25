@@ -4,9 +4,9 @@
 > BayLeaf inference platform, using OpenChamber as a harness. All individual
 > projects are generated from project templates provided by the teaching
 > professor. Changes in each individual assignment were made by m1stD3V and
-> teammates where applicable — Weichen Sun and Tim on D1, and Charles Lesser on
-> D2 — fulfilling assignment rubrics. This repository was generated for archival
-> purposes.
+> teammates where applicable — Weichen Sun and Tim on D1, Charles Lesser on D2,
+> and Mason Reoch on D3 — fulfilling assignment rubrics. This repository was
+> generated for archival purposes.
 
 Each project below was published as its own GitHub repository. Its commits were
 imported here, re-rooted at the folder shown, and preserved a second time as a
