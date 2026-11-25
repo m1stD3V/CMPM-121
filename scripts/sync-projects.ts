@@ -48,6 +48,9 @@ for (const arg of Deno.args) {
 }
 
 const local = flags.has("local");
+// Use your SSH key instead of HTTPS (no token needed), matching how the
+// original repositories are normally cloned.
+const useSsh = flags.has("ssh") || Deno.env.get("SYNC_SSH") === "1";
 // Where the working copies live, when --local is used from somewhere else.
 const sourceRoot = values.get("source-root") ?? ROOT;
 const push = flags.has("push");
@@ -103,6 +106,8 @@ if (selected.length === 0) {
 for (const project of selected) {
   const source = local
     ? `${sourceRoot}/${project.path}`
+    : useSsh
+    ? `git@github.com:${OWNER}/${project.repo}.git`
     : TOKEN
     ? `https://x-access-token:${TOKEN}@github.com/${OWNER}/${project.repo}.git`
     : `https://github.com/${OWNER}/${project.repo}.git`;
@@ -111,6 +116,21 @@ for (const project of selected) {
       local ? "working copy" : `${OWNER}/${project.repo}`
     }`,
   );
+
+  if (local) {
+    // A .git *inside* the project, not the archive's repository above it.
+    const own = await Deno.stat(`${sourceRoot}/${project.path}/.git`)
+      .then(() => true)
+      .catch(() => false);
+    if (!own) {
+      throw new Error(
+        `${sourceRoot}/${project.path} is not its own repository.\n` +
+          `This folder is the archive now, so --local needs the original ` +
+          `checkouts elsewhere: --source-root=/path/to/clones, or use ` +
+          `deno task sync --ssh.`,
+      );
+    }
+  }
 
   // Exact copy of the repository: original hashes, original branch names.
   // A working copy keeps some of its branches only as remote-tracking refs, so

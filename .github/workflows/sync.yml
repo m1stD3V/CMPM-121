@@ -4,8 +4,11 @@ name: Sync project sources
 #
 # Those repositories are private, so this needs a token: create a fine-grained
 # personal access token with read-only "Contents" access to them, and save it as
-# the repository secret SYNC_TOKEN. Without the secret the job skips quietly —
-# `deno task sync --local` on a machine that has the folders still works.
+# the repository secret SYNC_TOKEN. Without the secret the job skips quietly;
+# `deno task sync --ssh` on your machine still works.
+#
+# A push made with GITHUB_TOKEN does not trigger other workflows, so the deploy
+# is dispatched explicitly when main actually moved.
 #
 # This is a bridge, not a permanent part of the archive: once the original
 # repositories are retired, delete this workflow.
@@ -17,6 +20,7 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
 concurrency:
   group: "sync"
@@ -42,7 +46,7 @@ jobs:
           SYNC_TOKEN: ${{ secrets.SYNC_TOKEN }}
         run: |
           if [ -z "$SYNC_TOKEN" ]; then
-            echo "::notice::SYNC_TOKEN is not set; skipping the remote sync. Add the secret, or run deno task sync --local locally."
+            echo "::notice::SYNC_TOKEN is not set; skipping the remote sync. Add the secret, or run deno task sync --ssh locally."
             echo "skip=true" >> "$GITHUB_OUTPUT"
           fi
 
@@ -52,8 +56,24 @@ jobs:
           git config user.name "archive sync"
           git config user.email "archive-sync@users.noreply.github.com"
 
+      - name: Remember where main is
+        id: before
+        if: steps.token.outputs.skip != 'true'
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
       - name: Import new commits and push
         if: steps.token.outputs.skip != 'true'
         env:
           SYNC_TOKEN: ${{ secrets.SYNC_TOKEN }}
         run: deno task sync --push
+
+      - name: Remember where main ended up
+        id: after
+        if: steps.token.outputs.skip != 'true'
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Redeploy the site
+        if: steps.token.outputs.skip != 'true' && steps.before.outputs.sha != steps.after.outputs.sha
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run pages.yml --ref main

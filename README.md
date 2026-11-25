@@ -30,8 +30,9 @@ them; this repository owns everything under it.
 deno task build     # build every project with the right base path, then the hub
 deno task serve     # preview at http://localhost:8000/CMPM-121/
 deno task site      # assemble dist/ from existing project builds (what CI does)
-deno task sync      # refresh history from the GitHub remotes
-deno task sync --local   # refresh from the project folders on disk
+deno task sync --ssh     # refresh history from the GitHub remotes, using your key
+deno task sync          # same, over HTTPS (needs SYNC_TOKEN or a credential helper)
+deno task sync --local --source-root=/path/to/clones   # offline, from checkouts
 deno task check     # formatting, lint, and type-check for the archive's own code
 ```
 
@@ -62,12 +63,38 @@ routing.
 Pages is served from the repository name: `https://m1std3v.github.io/CMPM-121/`,
 with each project at `/CMPM-121/<folder>/`.
 
+## Syncing while the originals live
+
+`sync` clones each repository, writes `archives/<label>.bundle`, rewrites every
+branch under `projects/<label>/`, and merges the project's `head` branch into
+`main`. So yes: commits pushed to the still-active repositories arrive here.
+
+Which mode you need depends on credentials, because those repositories are
+private:
+
+| Mode                      | Needs                               | Use                           |
+| ------------------------- | ----------------------------------- | ----------------------------- |
+| `--ssh`                   | your SSH key                        | day to day, from your machine |
+| default (HTTPS)           | `SYNC_TOKEN` or a credential helper | the scheduled workflow        |
+| `--local --source-root=…` | original checkouts on disk          | offline                       |
+
+The weekly workflow needs the `SYNC_TOKEN` secret; without it the run is skipped
+with a notice. When it does push, it dispatches `pages.yml` itself, because a
+push made with `GITHUB_TOKEN` does not trigger other workflows.
+
+Two limits worth knowing. A sync merges, so a file edited both in the archive
+and in the original repo is resolved in favour of the original (`-X theirs`) —
+fine while the originals are authoritative, wrong once they are gone. And this
+folder no longer contains those `.git` directories, so `--local` without
+`--source-root` now fails on purpose: the archive is not the checkout.
+
 ## Adding a project
 
 1. Put the folder under `Demos/`, `Exercises/`, or `Section/`.
 2. Add an entry to `projects.json` (`path`, `label`, `group`, `title`,
    `description`, `stack`, `repo`, `head`, `build`).
-3. `deno task sync --local` imports its history and bundles the origin.
+3. `deno task sync --ssh --only=<label>` imports its history and bundles the
+   origin (or `--local --source-root=<folder>` if it is not on GitHub yet).
 4. Commit.
 
 ## One caution
@@ -84,6 +111,6 @@ it would install one project's pre-commit check for the whole archive. Use
 individual repositories are retired, delete `.github/workflows/sync.yml`; the
 archive stops needing them.
 
-The scheduled sync fetches each repository anonymously, so it works while they
-are public (as GitHub Pages requires on a free plan). If one is private, run
-`deno task sync --local` from a machine that already has it checked out.
+The project repositories are private, so remote sync needs `SYNC_TOKEN` (a
+fine-grained token with read access to them) or your SSH key via `--ssh`. Once
+the originals are retired, delete `sync.yml`; nothing else depends on them.
